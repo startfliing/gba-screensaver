@@ -3,30 +3,75 @@
 
 #include "terminal.hpp"
 
-#include "image.h"
+#include "attempt1.h"
 #include "soundbank.h"
 #include "soundbank_bin.h"
 
 #define ENABLE_MUSIC false
 
+//fixed point precision for color to make color transitions smooth
+#define FPP 4
+
+//take a color and build a full palette from it
+void updatePal(int r, int g, int b){
+    int dg = g / 15;
+    int db = b / 15;
+    int dr = r / 15;
+    for(int i = 0; i < 16; i++){
+        int ng = clamp((dg * i)>>FPP, 0, 32);
+        int nb = clamp((db * i)>>FPP, 0, 32);
+        int nr = clamp((dr * i)>>FPP, 0, 32);
+        pal_bg_mem[15-i] = RGB15(31-nr, 31-ng, 31-nb);
+    }
+}
+//colAsc[0] = rAsc, ...[1] = gAsc, ...[2] = bAsc
+bool colAsc[3] = {false, true, true};
+
+//update the color palette is based on
+void updateColor(int* r, int* g, int* b){
+    int* temp[3] = {r,g,b};
+    int color = qran() % 3;
+    int rand = qran()>>11;
+    int diff = colAsc[color] ? rand : -1 * rand;
+    *temp[color] = clamp((*temp[color] + diff), 0, (32<<FPP));
+    //*temp[i] += diff;
+    if((*temp[color]) <= (0<<FPP)) colAsc[color] = true;
+    if((*temp[color]) >= (31<<FPP)) colAsc[color] = false;
+}
+
+//Horizontal Offset Precision
+#define HOFSP 2
+
+bool movingRight = true;
+int hofs = 0;
+
+void updateHOFS(){
+    
+    hofs += movingRight ? 1 : -1;
+    REG_BG0HOFS = hofs>>HOFSP;
+    if(hofs <= (0<<HOFSP)) movingRight = true;
+    if(hofs >= (16<<HOFSP)) movingRight = false;
+}
+
+//Vertical Offset Precision
+#define VOFSP 1
+
+
+
 int main(){
     //enable Border BG
     u8 cbb = 0;
     u8 sbb = 16;
-    REG_BG0CNT = BG_BUILD(cbb, sbb, 0, 0, 1, 0, 0);
-
-    //load palette
-    memcpy16(pal_bg_mem, imagePal, imagePalLen/2);
+    REG_BG0CNT = BG_BUILD(cbb, sbb, 2, 0, 1, 0, 1);
 
     //load tiles
-    LZ77UnCompVram(imageTiles, tile_mem[cbb]);
+    LZ77UnCompVram(attempt1Tiles, tile_mem[cbb]);
     
     //load image
-    memcpy16(&se_mem[sbb], imageMap, imageMapLen/2);
+    LZ77UnCompVram(attempt1Map, &se_mem[sbb]);
 
     //enable Text BG
-    REG_BG1CNT = Terminal::setCNT(1, cbb+1, sbb+1);
-    REG_DISPCNT = DCNT_BG0 | DCNT_BG1 | DCNT_MODE0;
+    REG_DISPCNT = DCNT_BG0 | DCNT_MODE0;
 
     // Initialize Interrupts
     irq_init(nullptr);
@@ -35,23 +80,22 @@ int main(){
 	irq_set( II_VBLANK, mmVBlank, 0);
 	irq_enable(II_VBLANK);
 
-	// initialise maxmod with soundbank and 8 channels
-    if(ENABLE_MUSIC){
-        mmInitDefault( (mm_addr)soundbank_bin, 16 );
-        mmStart( MOD_FLATOUTLIES, MM_PLAY_ONCE );
-    }
+    irq_set(II_HBLANK, updateHOFS, 0);
+    irq_enable(II_HBLANK);
 
-    //Setup is done. Lets put it into action!
-    Terminal::log("Hello World!");
+    int r = 31<<FPP, g = 0, b = 0;
+    updatePal(r, g, b);
+
+    int vofs = 0;
 
     while(1){
+        
+        updateColor(&r, &g, &b);
 
-        if(key_hit(KEY_START)){
-            Terminal::reset();
-        }
+        updatePal(r, g, b);
 
-        //update song
-        mmFrame();
+        REG_BG0VOFS = vofs>>VOFSP;
+        vofs += 1;
 
         //update random nunmber
         qran();
@@ -60,6 +104,10 @@ int main(){
         key_poll();
 
         //helps with visual tearing
-        vid_vsync();
+        VBlankIntrWait();
+
+        int tempHOFS = vofs%(32<<(VOFSP));
+        hofs = tempHOFS < (16<<(VOFSP)) ? tempHOFS : (32<<(VOFSP))-tempHOFS;
+
     }
 }
