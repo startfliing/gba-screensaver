@@ -47,7 +47,7 @@ void updateColor(int* r, int* g, int* b){
 }
 
 //Horizontal Offset Precision
-#define HOFSP 2
+#define HOFSP 5
 
 int hofs = 0;
 
@@ -58,8 +58,7 @@ void updateHOFS(){
 }
 
 //Vertical Offset Precision
-#define VOFSP 1
-
+#define VOFSP 2
 
 
 int main(){
