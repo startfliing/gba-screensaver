@@ -1,13 +1,6 @@
 #include "tonc.h"
-#include "maxmod.h"
-
-#include "terminal.hpp"
 
 #include "attempt1.h"
-#include "soundbank.h"
-#include "soundbank_bin.h"
-
-#define ENABLE_MUSIC false
 
 //fixed point precision for color to make color transitions smooth
 #define FPP 4
@@ -75,7 +68,7 @@ int main(){
     irq_init(nullptr);
 
 	// Maxmod requires the vblank interrupt to reset sound DMA. 
-	irq_set( II_VBLANK, mmVBlank, 0);
+	irq_set( II_VBLANK, nullptr, 0);
 	irq_enable(II_VBLANK);
 
     irq_set(II_HBLANK, updateHOFS, 0);
