@@ -5,6 +5,20 @@
 //fixed point precision for color to make color transitions smooth
 #define FPP 4
 
+/** Oscillate a value between a lower and upper bound
+ * 
+ * @param val The true val, should not be affected by oscillate
+ * @param min The lower bound of the oscillation
+ * @param max The upper bound of the oscillation
+ * 
+ * @return value between `min` and `max`
+ */
+int oscillate(int val, int min, int max){
+    int diff = max - min;
+    int temp = (val-min) % (diff*2);
+    return temp <= diff ? min + temp : min + ((diff*2) - temp); 
+}
+
 //take a color and build a full palette from it
 void updatePal(int pal, int r, int g, int b){
     int dg = g / 15;
@@ -38,9 +52,8 @@ void updateColor(int* r, int* g, int* b){
 int hofs = 0;
 
 void updateHOFS(){
-    
-    int tempHOFS = hofs%(32<<(HOFSP));
-    REG_BG0HOFS = (tempHOFS < (16<<(HOFSP)) ? tempHOFS : (32<<(HOFSP))-tempHOFS)>>HOFSP;
+    REG_BG0HOFS = oscillate(hofs*17, 0, 16<<HOFSP)>>HOFSP;
+    REG_BG1HOFS = oscillate(hofs*31, 0, 16<<HOFSP)>>HOFSP;
     hofs++;
 }
 
