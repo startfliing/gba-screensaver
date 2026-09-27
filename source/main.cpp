@@ -42,15 +42,13 @@ void updateColor(int* r, int* g, int* b){
 //Horizontal Offset Precision
 #define HOFSP 2
 
-bool movingRight = true;
 int hofs = 0;
 
 void updateHOFS(){
     
-    hofs += movingRight ? 1 : -1;
-    REG_BG0HOFS = hofs>>HOFSP;
-    if(hofs <= (0<<HOFSP)) movingRight = true;
-    if(hofs >= (16<<HOFSP)) movingRight = false;
+    int tempHOFS = hofs%(32<<(HOFSP));
+    REG_BG0HOFS = (tempHOFS < (16<<(HOFSP)) ? tempHOFS : (32<<(HOFSP))-tempHOFS)>>HOFSP;
+    hofs++;
 }
 
 //Vertical Offset Precision
@@ -95,7 +93,8 @@ int main(){
         updatePal(r, g, b);
 
         REG_BG0VOFS = vofs>>VOFSP;
-        vofs += 1;
+        vofs++;
+        hofs = vofs;
 
         //update random nunmber
         qran();
@@ -106,8 +105,7 @@ int main(){
         //helps with visual tearing
         VBlankIntrWait();
 
-        int tempHOFS = vofs%(32<<(VOFSP));
-        hofs = tempHOFS < (16<<(VOFSP)) ? tempHOFS : (32<<(VOFSP))-tempHOFS;
+        
 
     }
 }
