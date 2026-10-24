@@ -20,6 +20,29 @@ int oscillate(int val, int min, int max){
     return temp <= diff ? min + temp : min + ((diff*2) - temp); 
 }
 
+/** Oscillate a value sinusoidally between a lower and upper bound
+ * 
+ * Same period as `oscillate` (2 * (max - min)), but eased at the extremes.
+ * Starts at `min` when `val == min`.
+ * 
+ * @param val The true val, should not be affected by oscillate
+ * @param min The lower bound of the oscillation
+ * @param max The upper bound of the oscillation
+ * 
+ * @return value between `min` and `max`
+ */
+int oscillateSin(int val, int min, int max){
+    int diff = max - min;
+    if(diff <= 0) return min;
+    int period = diff * 2;
+    int temp = (val - min) % period;
+    if(temp < 0) temp += period;
+    int theta = (temp * 0x10000) / period;   // tonc angle: 0x10000 = full circle
+    // lu_cos is .12 fixed point: (1 - cos) / 2 goes 0 -> 1 -> 0
+    int t = (0x1000 - lu_cos(theta)) >> 1;    // 0..0x1000
+    return min + ((diff * t) >> 12);
+}
+
 //take a color and build a full palette from it
 void updatePal(int pal, int r, int g, int b){
     int dg = g / 14;
@@ -56,8 +79,8 @@ void updateColor(int pal, int* r, int* g, int* b){
 int hofs = 0;
 
 void updateHOFS(){
-    REG_BG0HOFS = oscillate(hofs*71, 0, 16<<HOFSP)>>HOFSP;
-    REG_BG1HOFS = oscillate(hofs*73, 0, 16<<HOFSP)>>HOFSP;
+    REG_BG0HOFS = oscillateSin(hofs*-37, 0, 16<<HOFSP)>>HOFSP;
+    REG_BG1HOFS = oscillateSin(hofs*31, 0, 16<<HOFSP)>>HOFSP;
     hofs++;
 }
 
