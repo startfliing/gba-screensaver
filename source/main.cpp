@@ -33,18 +33,21 @@ void updatePal(int pal, int r, int g, int b){
     }
 }
 //colAsc[0] = rAsc, ...[1] = gAsc, ...[2] = bAsc
-bool colAsc[3] = {false, true, true};
+bool colAsc[2][3] = {
+    {false, true, true},
+    {true, false, true}
+};
 
 //update the color palette is based on
-void updateColor(int* r, int* g, int* b){
+void updateColor(int pal, int* r, int* g, int* b){
     int* temp[3] = {r,g,b};
     int color = qran() % 3;
     int rand = qran()>>11;
-    int diff = colAsc[color] ? rand : -1 * rand;
+    int diff = colAsc[pal][color] ? rand : -1 * rand;
     *temp[color] = clamp((*temp[color] + diff), 0, (32<<FPP));
     //*temp[i] += diff;
-    if((*temp[color]) <= (0<<FPP)) colAsc[color] = true;
-    if((*temp[color]) >= (31<<FPP)) colAsc[color] = false;
+    if((*temp[color]) <= (0<<FPP)) colAsc[pal][color] = true;
+    if((*temp[color]) >= (31<<FPP)) colAsc[pal][color] = false;
 }
 
 //Horizontal Offset Precision
@@ -107,8 +110,8 @@ int main(){
 
     while(1){
         
-        updateColor(&r0, &g0, &b0);
-        updateColor(&r1, &g1, &b1);
+        updateColor(0, &r0, &g0, &b0);
+        updateColor(1, &r1, &g1, &b1);
 
         updatePal(0, r0, g0, b0);
         updatePal(1, r1, g1, b1);
