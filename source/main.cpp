@@ -88,7 +88,7 @@ void updateHOFS(){
 }
 
 //Vertical Offset Precision
-#define VOFSP 2
+#define VOFSP 4
 
 
 int main(){
@@ -142,8 +142,8 @@ int main(){
         updatePal(0, r0, g0, b0);
         updatePal(1, r1, g1, b1);
 
-        REG_BG0VOFS = vofs>>VOFSP;
-        REG_BG1VOFS = (-1*vofs)>>VOFSP;
+        //REG_BG0VOFS = (7*vofs)>>VOFSP;
+        REG_BG1VOFS = (-7*vofs)>>VOFSP;
         vofs++;
         hofs = vofs;
 
