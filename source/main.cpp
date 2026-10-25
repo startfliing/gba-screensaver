@@ -6,6 +6,9 @@
 //fixed point precision for color to make color transitions smooth
 #define FPP 4
 
+//used to differentiate what is being treated as a color value
+typedef int COLOR_VAL;
+
 /** Oscillate a value between a lower and upper bound
  * 
  * @param val The true val, should not be affected by oscillate
@@ -44,7 +47,7 @@ int oscillateSin(int val, int min, int max){
 }
 
 //take a color and build a full palette from it
-void updatePal(int pal, int r, int g, int b){
+void updatePal(int pal, COLOR_VAL r, COLOR_VAL g, COLOR_VAL b){
     int dg = g / 14;
     int db = b / 14;
     int dr = r / 14;
@@ -62,8 +65,8 @@ bool colAsc[2][3] = {
 };
 
 //update the color palette is based on
-void updateColor(int pal, int* r, int* g, int* b){
-    int* temp[3] = {r,g,b};
+void updateColor(int pal, COLOR_VAL* r, COLOR_VAL* g, COLOR_VAL* b){
+    COLOR_VAL* temp[3] = {r,g,b};
     int color = qran() % 3;
     int rand = qran()>>11;
     int diff = colAsc[pal][color] ? rand : -1 * rand;
@@ -124,8 +127,8 @@ int main(){
     REG_BLDCNT = BLD_BUILD(BLD_BG1, BLD_BG0, 1);
     REG_BLDALPHA = BLDA_BUILD(8,8);
 
-    int r0 = qran(), g0 = qran(), b0 = qran();
-    int r1 = qran(), g1 = qran(), b1 = qran();
+    COLOR_VAL r0 = qran(), g0 = qran(), b0 = qran();
+    COLOR_VAL r1 = qran(), g1 = qran(), b1 = qran();
     updatePal(0, r0, g0, b0);
     updatePal(1, r1, g1, b1);
 
