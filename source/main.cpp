@@ -3,6 +3,10 @@
 #include "attempt2_0.h"
 #include "attempt2_1.h"
 
+#include "maxmod.h"
+#include "soundbank.h"
+#include "soundbank_bin.h"
+
 //fixed point precision for color to make color transitions smooth
 #define FPP 4
 
@@ -118,7 +122,7 @@ int main(){
     irq_init(nullptr);
 
 	// Maxmod requires the vblank interrupt to reset sound DMA. 
-	irq_set( II_VBLANK, nullptr, 0);
+	irq_set( II_VBLANK, mmVBlank, 0);
 	irq_enable(II_VBLANK);
 
     irq_set(II_HBLANK, updateHOFS, 0);
@@ -131,6 +135,9 @@ int main(){
     COLOR_VAL r1 = qran(), g1 = qran(), b1 = qran();
     updatePal(0, r0, g0, b0);
     updatePal(1, r1, g1, b1);
+
+    mmInitDefault( (mm_addr)soundbank_bin, 16 );
+    mmStart( MOD_EIGHT_LOVELY_DAYS, MM_PLAY_LOOP );
 
     int vofs = 0;
 
@@ -147,6 +154,9 @@ int main(){
         vofs++;
         hofs = vofs;
 
+        //update song
+        mmFrame();
+
         //update random nunmber
         qran();
 
@@ -155,8 +165,5 @@ int main(){
 
         //helps with visual tearing
         VBlankIntrWait();
-
-        
-
     }
 }
