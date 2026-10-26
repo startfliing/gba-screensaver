@@ -65,7 +65,7 @@ void updatePal(int pal, COLOR_VAL r, COLOR_VAL g, COLOR_VAL b){
 //colAsc[0] = rAsc, ...[1] = gAsc, ...[2] = bAsc
 bool colAsc[2][3] = {
     {false, true, true},
-    {true, false, true}
+    {true, true, false}
 };
 
 //update the color palette is based on
